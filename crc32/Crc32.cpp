@@ -26,11 +26,48 @@
   #define __BIG_ENDIAN    4321
 #endif
 
+#if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN ||             \
+    defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ || \
+    defined(__BIG_ENDIAN__) ||                                           \
+    defined(__ARMEB__) ||                                                \
+    defined(__THUMBEB__) ||                                              \
+    defined(__AARCH64EB__) ||                                            \
+    defined(_MIBSEB) || defined(__MIBSEB) || defined(__MIBSEB__)
+#define IS_BIG_ENDIAN 1
+#endif
+
+#if defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN ||             \
+    defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ || \
+    defined(__LITTLE_ENDIAN__) ||                                           \
+    defined(__ARMEL__) ||                                                   \
+    defined(__THUMBEL__) ||                                                 \
+    defined(__AARCH64EL__) ||                                               \
+    defined(_MIPSEL) || defined(__MIPSEL) || defined(__MIPSEL__)
+#define IS_LITTLE_ENDIAN 1
+#endif
+
+#if defined(IS_BIG_ENDIAN) && defined(IS_LITTLE_ENDIAN)
+#error "endian detection conflicts"
+#endif
+
+#if !defined(IS_BIG_ENDIAN) && !defined(IS_LITTLE_ENDIAN)
+#error "endian detection failed"
+#endif
+
+#if defined(IS_LITTLE_ENDIAN)
+  #define __BYTE_ORDER __LITTLE_ENDIAN
+#endif
+
+#if defined(IS_BIG_ENDIAN)
+  #define __BYTE_ORDER __BIG_ENDIAN
+#endif
+
 // define endianess and some integer data types
 #if defined(_MSC_VER) || defined(__MINGW32__)
+/*
   // Windows always little endian
   #define __BYTE_ORDER __LITTLE_ENDIAN
-
+*/
   // intrinsics / prefetching
   #if defined(__MINGW32__) || defined(__clang__)
     #define PREFETCH(location) __builtin_prefetch(location)
@@ -43,9 +80,10 @@
     #endif
   #endif
 #else
+/*
   // defines __BYTE_ORDER as __LITTLE_ENDIAN or __BIG_ENDIAN
   #include <sys/param.h>
-
+*/
   // intrinsics / prefetching
   #ifdef __GNUC__
     #define PREFETCH(location) __builtin_prefetch(location)
