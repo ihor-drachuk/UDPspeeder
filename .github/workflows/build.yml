@@ -10,25 +10,27 @@ on:
         type: boolean
 
 jobs:
-  linux:
-    name: linux-${{ matrix.target }}
-    runs-on: ubuntu-latest
+  build:
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false
       matrix:
-        target: [amd64, arm64, armhf, win32]
+        include:
+          - { target: linux-amd64,   runs-on: ubuntu-latest, apt: g++ }
+          - { target: linux-arm64,   runs-on: ubuntu-latest, apt: g++-aarch64-linux-gnu }
+          - { target: linux-armhf,   runs-on: ubuntu-latest, apt: g++-arm-linux-gnueabihf }
+          - { target: windows-i686,  runs-on: ubuntu-latest, apt: g++-mingw-w64-i686 }
+          - { target: macos-amd64,   runs-on: macos-latest }
+          - { target: macos-arm64,   runs-on: macos-latest }
     steps:
       - uses: actions/checkout@v6
 
       - name: Install toolchain
+        if: matrix.apt
         run: |
           sudo apt-get update
-          case "${{ matrix.target }}" in
-            amd64)  sudo apt-get install -y --no-install-recommends g++ ;;
-            arm64)  sudo apt-get install -y --no-install-recommends g++-aarch64-linux-gnu ;;
-            armhf)  sudo apt-get install -y --no-install-recommends g++-arm-linux-gnueabihf ;;
-            win32)  sudo apt-get install -y --no-install-recommends g++-mingw-w64-i686 ;;
-          esac
+          sudo apt-get install -y --no-install-recommends ${{ matrix.apt }}
 
       - name: Build
         run: bash scripts/ci-build.sh ${{ matrix.target }}
@@ -39,33 +41,7 @@ jobs:
         with:
           name: speederv2-${{ matrix.target }}
           path: |
-            speederv2_amd64
-            speederv2_arm64
-            speederv2_armhf
-            speederv2.exe
-          if-no-files-found: ignore
-          retention-days: 14
-
-  macos:
-    name: macos-${{ matrix.target }}
-    runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        target: [mac, mac-arm64]
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Build
-        run: bash scripts/ci-build.sh ${{ matrix.target }}
-
-      - name: Upload artifact
-        if: ${{ inputs.upload-artifacts }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: speederv2-${{ matrix.target }}
-          path: |
-            speederv2_mac_x86_64
-            speederv2_mac_arm64
-          if-no-files-found: ignore
+            speederv2-${{ matrix.target }}
+            speederv2-${{ matrix.target }}.exe
+          if-no-files-found: error
           retention-days: 14

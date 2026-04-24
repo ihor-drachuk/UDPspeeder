@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build UDPspeeder for a given target in CI.
 # Usage: scripts/ci-build.sh <target>
-# Targets: amd64, arm64, armhf, win64, mac, mac-arm64
+# Targets: linux-amd64, linux-arm64, linux-armhf, windows-i686, macos-amd64, macos-arm64
 
 set -euo pipefail
 
@@ -29,38 +29,38 @@ COMMON_FLAGS=(
 echo "const char *gitversion = \"$(git rev-parse HEAD)\";" > git_version.h
 
 case "$TARGET" in
-    amd64)
+    linux-amd64)
         CXX="${CXX:-g++}"
-        OUT="${NAME}_amd64"
+        OUT="${NAME}-linux-amd64"
         "$CXX" "${COMMON_FLAGS[@]}" "${SOURCES[@]}" -lrt -lpthread -static -o "$OUT"
         ;;
-    arm64)
+    linux-arm64)
         CXX="aarch64-linux-gnu-g++"
-        OUT="${NAME}_arm64"
+        OUT="${NAME}-linux-arm64"
         "$CXX" "${COMMON_FLAGS[@]}" "${SOURCES[@]}" -lrt -lpthread -static -o "$OUT"
         ;;
-    armhf)
+    linux-armhf)
         CXX="arm-linux-gnueabihf-g++"
-        OUT="${NAME}_armhf"
+        OUT="${NAME}-linux-armhf"
         "$CXX" "${COMMON_FLAGS[@]}" "${SOURCES[@]}" -lrt -lpthread -static -o "$OUT"
         ;;
-    win32)
+    windows-i686)
         # -Wno-narrowing: libev/ev_win32.c initialises SOCKET (unsigned) with
         # -1, which modern g++ rejects as narrowing in C++11 aggregate init.
         # The value is then compared against INVALID_SOCKET, so the cast is
         # intentional; silencing is the minimal, non-invasive fix.
         CXX="i686-w64-mingw32-g++-posix"
-        OUT="${NAME}.exe"
+        OUT="${NAME}-windows-i686.exe"
         "$CXX" "${COMMON_FLAGS[@]}" -Wno-narrowing "${SOURCES[@]}" -static -lws2_32 -o "$OUT"
         ;;
-    mac)
+    macos-amd64)
         CXX="${CXX:-clang++}"
-        OUT="${NAME}_mac_x86_64"
+        OUT="${NAME}-macos-amd64"
         "$CXX" "${COMMON_FLAGS[@]}" "${SOURCES[@]}" -lpthread -arch x86_64 -o "$OUT"
         ;;
-    mac-arm64)
+    macos-arm64)
         CXX="${CXX:-clang++}"
-        OUT="${NAME}_mac_arm64"
+        OUT="${NAME}-macos-arm64"
         "$CXX" "${COMMON_FLAGS[@]}" "${SOURCES[@]}" -lpthread -arch arm64 -o "$OUT"
         ;;
     *)
