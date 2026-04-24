@@ -45,9 +45,13 @@ case "$TARGET" in
         "$CXX" "${COMMON_FLAGS[@]}" "${SOURCES[@]}" -lrt -lpthread -static -o "$OUT"
         ;;
     win32)
+        # -Wno-narrowing: libev/ev_win32.c initialises SOCKET (unsigned) with
+        # -1, which modern g++ rejects as narrowing in C++11 aggregate init.
+        # The value is then compared against INVALID_SOCKET, so the cast is
+        # intentional; silencing is the minimal, non-invasive fix.
         CXX="i686-w64-mingw32-g++-posix"
         OUT="${NAME}.exe"
-        "$CXX" "${COMMON_FLAGS[@]}" "${SOURCES[@]}" -static -lws2_32 -o "$OUT"
+        "$CXX" "${COMMON_FLAGS[@]}" -Wno-narrowing "${SOURCES[@]}" -static -lws2_32 -o "$OUT"
         ;;
     mac)
         CXX="${CXX:-clang++}"
