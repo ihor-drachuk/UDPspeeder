@@ -18,7 +18,7 @@ jobs:
       matrix:
         target: [amd64, arm64, armhf, win64]
     steps:
-      - uses: actions/checkout@v8
+      - uses: actions/checkout@v6
 
       - name: Install toolchain
         run: |
@@ -54,7 +54,7 @@ jobs:
       matrix:
         target: [mac, mac-arm64]
     steps:
-      - uses: actions/checkout@v8
+      - uses: actions/checkout@v6
 
       - name: Build
         run: bash scripts/ci-build.sh ${{ matrix.target }}
