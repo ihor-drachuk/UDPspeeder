@@ -1,0 +1,60 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      upload-artifacts: true
+
+  publish:
+    name: publish release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v8
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v6
+        with:
+          path: artifacts
+
+      - name: Assemble release bundle
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          find artifacts -type f \( \
+              -name 'speederv2_amd64' -o \
+              -name 'speederv2_arm64' -o \
+              -name 'speederv2_armhf' -o \
+              -name 'speederv2.exe'   -o \
+              -name 'speederv2_mac_x86_64' -o \
+              -name 'speederv2_mac_arm64' \
+            \) -exec cp -v {} out/ \;
+          echo "${GITHUB_SHA}" > out/version.txt
+          ls -la out/
+          tar -C out -zcvf speederv2_binaries.tar.gz .
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$TAG" \
+            --generate-notes \
+            speederv2_binaries.tar.gz \
+            out/speederv2_amd64 \
+            out/speederv2_arm64 \
+            out/speederv2_armhf \
+            out/speederv2.exe \
+            out/speederv2_mac_x86_64 \
+            out/speederv2_mac_arm64
