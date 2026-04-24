@@ -44,8 +44,8 @@ case "$TARGET" in
         OUT="${NAME}_armhf"
         "$CXX" "${COMMON_FLAGS[@]}" "${SOURCES[@]}" -lrt -lpthread -static -o "$OUT"
         ;;
-    win64)
-        CXX="x86_64-w64-mingw32-g++"
+    win32)
+        CXX="i686-w64-mingw32-g++-posix"
         OUT="${NAME}.exe"
         "$CXX" "${COMMON_FLAGS[@]}" "${SOURCES[@]}" -static -lws2_32 -o "$OUT"
         ;;

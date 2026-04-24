@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [amd64, arm64, armhf, win64]
+        target: [amd64, arm64, armhf, win32]
     steps:
       - uses: actions/checkout@v6
 
@@ -27,7 +27,7 @@ jobs:
             amd64)  sudo apt-get install -y --no-install-recommends g++ ;;
             arm64)  sudo apt-get install -y --no-install-recommends g++-aarch64-linux-gnu ;;
             armhf)  sudo apt-get install -y --no-install-recommends g++-arm-linux-gnueabihf ;;
-            win64)  sudo apt-get install -y --no-install-recommends g++-mingw-w64-x86-64 ;;
+            win32)  sudo apt-get install -y --no-install-recommends g++-mingw-w64-i686 ;;
           esac
 
       - name: Build
